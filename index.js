@@ -29,8 +29,7 @@ io.on('connection', function(socket){
     }
     var username = usernames[socket.id]
     socket.join(socket.id);
-    console.log(socket.id);
-    socket.broadcast.to(socket.id).emit("welcome", "WELCOME TO ROOM: "+ room + " " + username);
+    io.in(socket.id).emit("welcome", "WELCOME TO ROOM: "+ room + " " + username);
     io.in(room).emit("roomcount" , "CURRENTLY " + roomcounts[room] +" IN ROOM " + room);
     // socket.to(room).emit("WELCOME TO ROOM: " + room);
   });
