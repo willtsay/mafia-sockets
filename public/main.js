@@ -1,3 +1,14 @@
+AWS.config.update({
+  region:
+  endpoint:
+  accessKeyId:
+  secretAccessKey: 
+});
+
+var dynamodb = new AWS.DyanomDB();
+var docClient = new AWS.DyanomDB.DocumentClient();
+
+
 $(function() {
   var FADE_TIME = 150; // ms
   var TYPING_TIMER_LENGTH = 400; // ms
@@ -26,6 +37,27 @@ $(function() {
     $("div.broadcast").text(message);
   })
 
+  socket.on("assign role", function(role){
+    // $.ajax({
+    //   type: "POST",
+    //   url: "https://p7lrmho5n7.execute-api.us-east-1.amazonaws.com/prod/RecipeUpdate?TableName=mafia",
+    //   data: role,
+
+    // })
+    role = JSON.stringify(role);
+    role = role;
+
+    console.log(role);
+
+    $.post("https://p7lrmho5n7.execute-api.us-east-1.amazonaws.com/prod/RecipeUpdate?TableName=mafia", role, function(data){
+      console("success");
+    });
+
+  })
+
+
+
+
 
   function setUsername () {
     username = cleanInput($usernameInput.val().trim());
@@ -47,19 +79,43 @@ $(function() {
     }
   }
 
+
+  socket.on()
+
   function joinRoom () {
     room = cleanInput($roomInput.val().trim());
     if (room) {
       $lobbyPage.fadeOut();
       $gamePage.show();
-      socket.emit('join room', room);
+      $.get("https://p7lrmho5n7.execute-api.us-east-1.amazonaws.com/prod/RecipeUpdate?TableName=Game_state", function(data) {
+        // if room does not exist, tell player to reprompt alexa i think.
+        entries = data["Items"];
+        var data = false;
+        data = validRoom(entries);
+        if (data){
+          socket.emit("join room", data);
+        } else {
+          console.log("invalid room!");
+        }
+      });
     }
   }
 
-
-
   function cleanInput (input) {
     return $('<div/>').text(input).text();
+  }
+
+  function validRoom (items) {
+    var data = {};
+    for (var i=0; i<items.length; i++ ){
+      var entry = items[i];
+      if (entry["RoomId"]==room){
+        data["room"] = entry["RoomId"];
+        data["max"] = entry["Num_people"];
+        return data;
+      }
+    }
+    return false;
   }
 
   $window.keydown(function (event) {
@@ -70,7 +126,6 @@ $(function() {
     // When the client hits ENTER on their keyboard
     if (event.which === 13) {
       if (username){
-
         joinRoom();
       } else {
   	    setUsername();      
